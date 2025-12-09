@@ -1,8 +1,10 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Inject, ParseUUIDPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Inject, ParseUUIDPipe, Query } from '@nestjs/common';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { ORDER_SERVICE } from 'src/config';
 import { ClientProxy, RpcException } from '@nestjs/microservices';
 import { firstValueFrom } from 'rxjs';
+import { PaginationDto } from 'src/common';
+import { OrderPaginationDto, StatusDto } from './dto';
 
 @Controller('orders')
 export class OrdersController {
@@ -16,11 +18,12 @@ export class OrdersController {
   }
 
   @Get()
-  findAll() { 
-    return this.ordersClient.send('findAllOrders' , {});
+  findAll(@Query() orderPaginationDto: OrderPaginationDto) { 
+    return this.ordersClient.send('findAllOrders' , orderPaginationDto);
+    
   }
 
-  @Get(':id')
+  @Get('id/:id')
   async findOne(@Param('id', ParseUUIDPipe) id: string) {
     try {
       const order = await firstValueFrom(
@@ -28,6 +31,23 @@ export class OrdersController {
       );
 
       return order;
+    } catch (error) {
+      throw  new RpcException(error);
+    }
+  }
+
+   @Get(':status')
+  async findAllByStatus(
+    @Param() statusDto: StatusDto,
+    @Query() paginationDto: PaginationDto,
+    ) {
+    try {
+      return this.ordersClient.send('findAllOrders', {
+       ...paginationDto,
+       status: statusDto.status,  
+      });
+
+      
     } catch (error) {
       throw  new RpcException(error);
     }
