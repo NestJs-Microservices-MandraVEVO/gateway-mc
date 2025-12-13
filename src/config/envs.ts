@@ -3,22 +3,27 @@ import * as joi from 'joi';
 
 interface EnvVars {
         PORT: number;
-        PRODUCTS_MICROSERVICES_HOST: string;
-        PRODUCTS_MICROSERVICES_PORT: number;
-        ORDER_MICROSERVICES_HOST: string;
-        ORDER_MICROSERVICES_PORT: number;
+        // PRODUCTS_MICROSERVICES_HOST: string;
+        // PRODUCTS_MICROSERVICES_PORT: number;
+        // ORDER_MICROSERVICES_HOST: string;
+        // ORDER_MICROSERVICES_PORT: number;
+        NATS_SERVERS: string[];
 }
 
 const envsSchema = joi.object({
     PORT: joi.number().required(),
-    PRODUCTS_MICROSERVICES_HOST: joi.string().required(),
-    PRODUCTS_MICROSERVICES_PORT: joi.number().required(),
-    ORDER_MICROSERVICES_HOST: joi.string().required(),
-    ORDER_MICROSERVICES_PORT: joi.number().required(),
+    // PRODUCTS_MICROSERVICES_HOST: joi.string().required(),
+    // PRODUCTS_MICROSERVICES_PORT: joi.number().required(),
+    // ORDER_MICROSERVICES_HOST: joi.string().required(),
+    // ORDER_MICROSERVICES_PORT: joi.number().required(),
+    NATS_SERVERS: joi.array().items(joi.string()).required(),///validar nats servers
 })
 .unknown(true);
 
-const{error, value} = envsSchema.validate(process.env);
+const{error, value} = envsSchema.validate({
+    ...process.env,
+    NATS_SERVERS: process.env.NATS_SERVERS?.split(',')
+});
 
 if (error) {
     throw new Error(`Config validation error: ${error.message}`);
@@ -29,8 +34,9 @@ const envVars: EnvVars = value;
 
 export const envs= {
     port: envVars.PORT,
-    PRODUCTS_MICROSERVICES_HOST: envVars.PRODUCTS_MICROSERVICES_HOST,
-    PRODUCTS_MICROSERVICES_PORT: envVars.PRODUCTS_MICROSERVICES_PORT,
-    ORDER_MICROSERVICES_HOST: envVars.ORDER_MICROSERVICES_HOST,
-    ORDER_MICROSERVICES_PORT: envVars.ORDER_MICROSERVICES_PORT,
+    // PRODUCTS_MICROSERVICES_HOST: envVars.PRODUCTS_MICROSERVICES_HOST,
+    // PRODUCTS_MICROSERVICES_PORT: envVars.PRODUCTS_MICROSERVICES_PORT,
+    // ORDER_MICROSERVICES_HOST: envVars.ORDER_MICROSERVICES_HOST,
+    // ORDER_MICROSERVICES_PORT: envVars.ORDER_MICROSERVICES_PORT,
+    natsServers:envVars.NATS_SERVERS,
 }
