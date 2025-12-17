@@ -2,6 +2,7 @@
 import { Catch, RpcExceptionFilter, ArgumentsHost, UnauthorizedException, ExceptionFilter } from '@nestjs/common';
 import { Observable, throwError } from 'rxjs';
 import { RpcException } from '@nestjs/microservices';
+import { stat } from 'fs';
 
 @Catch(RpcException)
 export class RpcCustomExceptionFilter implements ExceptionFilter {
@@ -11,6 +12,15 @@ export class RpcCustomExceptionFilter implements ExceptionFilter {
     const response = ctx.getResponse();
 
     const rpcError = exception.getError();
+//Expandir error para ver en consola cuando hay un servicio no disponible
+    if(rpcError.toString().includes('Empty response')){
+      return response.status(500).json({
+        status:500,
+        message: rpcError.toString().substring(0, rpcError.toString().indexOf('(')-1)
+      })
+    }
+
+    
 
     if (
       typeof rpcError === 'object' &&
